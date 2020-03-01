@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
@@ -23,6 +25,16 @@ class StopWatchPage extends StatefulWidget {
 }
 
 class _StopWatchPageState extends State<StopWatchPage> {
+  Timer _timer;
+  var _time = 0;
+  var _isRunning = false;
+  List<String> _lapTimes = [];
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,12 +52,14 @@ class _StopWatchPageState extends State<StopWatchPage> {
         onPressed: () => setState(() {
           _clickButton();
         }),
-        child: Icon(Icons.pause),//_isRunning ? Icon(Icons.pause) : Icon(Icons.play_arrow),
+        child: _isRunning ? Icon(Icons.pause) : Icon(Icons.play_arrow),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
   Widget _buildBody() {
+    var sec = _time ~/ 100;
+    var hundredth = "${_time % 100}".padLeft(2, "0");
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(top: 30),
@@ -58,17 +72,17 @@ class _StopWatchPageState extends State<StopWatchPage> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
                     Text(
-                      'sec',
+                      '$sec',
                       style: TextStyle(fontSize: 50.0),
                     ),
-                    Text('hundredth'),
+                    Text('$hundredth'),
                   ],
                 ),
                 Container(
                   width: 100,
                   height: 200,
                   child: ListView(
-                    children:["aa","bb","cc"].map((time) => Text(time)).toList(),
+                    children: _lapTimes.map((time) => Text(time)).toList(),
                   ),
                 ),
               ],
@@ -78,7 +92,7 @@ class _StopWatchPageState extends State<StopWatchPage> {
               bottom: 10,
               child: FloatingActionButton(
                 backgroundColor: Colors.deepOrange,
-                onPressed: () {}, // _reset,
+                onPressed: _reset,
                 child: Icon(Icons.rotate_left),
               ),
             ),
@@ -99,7 +113,31 @@ class _StopWatchPageState extends State<StopWatchPage> {
       ),
     );
   }
+  void _reset() {
+    setState(() {
+      _isRunning = false;
+      _timer?.cancel();
+      _time = 0;
+      _lapTimes.clear();
+    });
+  }
   void _clickButton() {
-
+    _isRunning = !_isRunning;
+    if(_isRunning) {
+      _start();
+    }
+    else {
+      _pause();
+    }
+  }
+  void _start() {
+    _timer = Timer.periodic(Duration(milliseconds: 10), (timer) {
+      setState(() {
+        _time++;
+      });
+     });
+  }
+  void _pause() {
+    _timer?.cancel();
   }
 }
